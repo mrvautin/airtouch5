@@ -2,11 +2,11 @@
   "domain": "airtouch5",
   "name": "AirTouch 5",
   "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/airtouch4",
+  "documentation": "https://github.com/mrvautin/airtouch5/blob/main/README.md",
   "requirements": [
     "git+https://github.com/cemilbrowne/airtouch4pyapi.git@AirTouch5Support#airtouch4pyapi==1.0.4"
   ],
-  "codeowners": ["@LonePurpleWolf"],
+  "codeowners": ["@mrvautin"],
   "iot_class": "local_polling",
   "loggers": ["airtouch4pyapi"]
 }
