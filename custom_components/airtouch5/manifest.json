@@ -5,7 +5,7 @@
   "config_flow": true,
   "documentation": "https://github.com/mrvautin/airtouch5/blob/main/README.md",
   "requirements": [
-    "git@github.com:cemilbrowne/airtouch4pyapi.git"
+    "git+https://github.com/mrvautin/airtouch4pyapi.git"
   ],
   "codeowners": ["@mrvautin"],
   "iot_class": "local_polling",
