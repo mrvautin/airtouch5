@@ -1,6 +1,7 @@
 {
   "domain": "airtouch5",
   "name": "AirTouch 5",
+  "version": "0.0.1",
   "config_flow": true,
   "documentation": "https://github.com/mrvautin/airtouch5/blob/main/README.md",
   "requirements": [
