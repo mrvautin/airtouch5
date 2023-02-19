@@ -5,11 +5,11 @@
     },
     "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "no_units": "Could not find any AirTouch 4 Groups."
+      "no_units": "Could not find any AirTouch 5 Groups."
     },
     "step": {
       "user": {
-        "title": "Set up your AirTouch 4 connection details.",
+        "title": "Set up your AirTouch 5 connection details.",
         "data": {
           "host": "[%key:common::config_flow::data::host%]"
         }

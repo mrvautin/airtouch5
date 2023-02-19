@@ -5,14 +5,14 @@
         },
         "error": {
             "cannot_connect": "Failed to connect",
-            "no_units": "Could not find any AirTouch 4 Groups."
+            "no_units": "Could not find any AirTouch 5 Groups."
         },
         "step": {
             "user": {
                 "data": {
                     "host": "Host"
                 },
-                "title": "Set up your AirTouch 4 connection details."
+                "title": "Set up your AirTouch 5 connection details."
             }
         }
     }

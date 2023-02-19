@@ -1,4 +1,4 @@
-"""The AirTouch4 integration."""
+"""The AirTouch 5 integration."""
 import logging
 
 from airtouch4pyapi import AirTouch
@@ -19,7 +19,7 @@ PLATFORMS = [Platform.CLIMATE]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up AirTouch4 from a config entry."""
+    """Set up AirTouch 5 from a config entry."""
     hass.data.setdefault(DOMAIN, {})
     host = entry.data[CONF_HOST]
     airtouch = AirTouch(host)

@@ -1,7 +1,8 @@
-"""AirTouch 4 component to control of AirTouch 4 Climate Devices."""
+"""AirTouch 5 component to control of AirTouch 5 Climate Devices."""
 from __future__ import annotations
 
 import logging
+import voluptuous as vol
 from typing import Any
 
 from homeassistant.components.climate import (
@@ -19,8 +20,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers import entity_platform
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+SERVICE_SET_GROUP_PERCENT = "set_group_percent"
 
 from .const import DOMAIN
 
@@ -59,30 +64,39 @@ HA_FAN_SPEED_TO_AT = {value: key for key, value in AT_TO_HA_FAN_SPEED.items()}
 
 _LOGGER = logging.getLogger(__name__)
 
-
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Airtouch 4."""
+    """Set up the Airtouch 5."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
     info = coordinator.data
     entities: list[ClimateEntity] = [
-        AirtouchGroup(coordinator, group["group_number"], info)
+        AirtouchGroup(coordinator, group["group_number"], group["group_name"], info)
         for group in info["groups"]
     ]
     entities.extend(
         AirtouchAC(coordinator, ac["ac_number"], info) for ac in info["acs"]
     )
 
-    _LOGGER.debug(" Found entities %s", entities)
-
+    # Add our enetites
     async_add_entities(entities)
 
+    # Setup new service to control the group percent
+    platform = entity_platform.async_get_current_platform()
+    platform.async_register_entity_service(
+        SERVICE_SET_GROUP_PERCENT,
+        {
+            vol.Required("percent"): vol.All(
+                vol.Coerce(int), vol.Range(min=0, max=100)
+            )
+        },
+        "async_set_group_percent",
+    )
 
 class AirtouchAC(CoordinatorEntity, ClimateEntity):
-    """Representation of an AirTouch 4 ac."""
+    """Representation of an AirTouch 5 ac."""
 
     _attr_supported_features = (
         ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.FAN_MODE
@@ -109,7 +123,7 @@ class AirtouchAC(CoordinatorEntity, ClimateEntity):
             identifiers={(DOMAIN, self.unique_id)},
             name=self.name,
             manufacturer="Airtouch",
-            model="Airtouch 4",
+            model="Airtouch 5",
         )
 
     @property
@@ -196,18 +210,18 @@ class AirtouchAC(CoordinatorEntity, ClimateEntity):
         await self._airtouch.TurnAcOff(self._ac_number)
         self.async_write_ha_state()
 
-
 class AirtouchGroup(CoordinatorEntity, ClimateEntity):
-    """Representation of an AirTouch 4 group."""
+    """Representation of an AirTouch 5 group."""
 
     _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_hvac_modes = AT_GROUP_MODES
 
-    def __init__(self, coordinator, group_number, info):
+    def __init__(self, coordinator, group_number, group_name, info):
         """Initialize the climate device."""
         super().__init__(coordinator)
         self._group_number = group_number
+        self._group_name = group_name
         self._airtouch = coordinator.airtouch
         self._info = info
         self._unit = self._airtouch.GetGroupByGroupNumber(self._group_number)
@@ -223,7 +237,7 @@ class AirtouchGroup(CoordinatorEntity, ClimateEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self.unique_id)},
             manufacturer="Airtouch",
-            model="Airtouch 4",
+            model="Airtouch 5",
             name=self.name,
         )
 
@@ -266,6 +280,18 @@ class AirtouchGroup(CoordinatorEntity, ClimateEntity):
             return HVACMode.OFF
 
         return HVACMode.FAN_ONLY
+
+    @property
+    def extra_state_attributes(self):
+        # _LOGGER.debug("ADDING NEW Attributes")
+        # group_data = self._airtouch.GetGroupByGroupNumber(
+        #     self._group_number
+        # )
+        # _LOGGER.debug("ADDING NEW group_data", group_data)
+
+        return {
+            "open_percent": 0,
+        }
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new operation mode."""
@@ -340,5 +366,19 @@ class AirtouchGroup(CoordinatorEntity, ClimateEntity):
         # this will cause the ac object to be wrong
         # (ac turns off automatically if no groups are running)
         # so force the shared data store to update
+        await self.coordinator.async_request_refresh()
+        self.async_write_ha_state()
+
+    async def async_set_group_percent(self, percent: int) -> None:
+        """Turn off."""
+        # Validate percent
+        if percent > 100:
+            _LOGGER.debug("'percent' cannot be greater than 100%")
+            return
+        
+        _LOGGER.debug("Set group name %s to %s percent", self._group_name, str(percent))
+        await self._airtouch.SetGroupToPercentByGroupName(
+            self._group_name, percent
+        )
         await self.coordinator.async_request_refresh()
         self.async_write_ha_state()

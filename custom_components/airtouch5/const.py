@@ -1,3 +1,3 @@
-"""Constants for the AirTouch4 integration."""
+"""Constants for the AirTouch 5 integration."""
 
 DOMAIN = "airtouch5"
